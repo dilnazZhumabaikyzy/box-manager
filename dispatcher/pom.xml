@@ -15,7 +15,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <telegram.bot.starter.version>5.0.0</telegram.bot.starter.version>
+        <telegram.bot.starter.version>6.1.0</telegram.bot.starter.version>
     </properties>
 
     <dependencies>
@@ -28,6 +28,12 @@
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-spring-boot-starter</artifactId>
             <version>${telegram.bot.starter.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>kz.sparklab</groupId>
+            <artifactId>common-rabbitmq</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

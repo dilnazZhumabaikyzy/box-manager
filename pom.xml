@@ -16,14 +16,17 @@
     <description>box-manager-bot</description>
     <modules>
         <module>dispatcher</module>
+        <module>common-rabbitmq</module>
     </modules>
     <properties>
         <java.version>17</java.version>
+        <lombok.version>1.18.22</lombok.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
