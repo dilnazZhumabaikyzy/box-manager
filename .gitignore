@@ -30,3 +30,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### ADDING LOG FOLDER TO IGNORE AND ALL ITS FILES ###
+log*
