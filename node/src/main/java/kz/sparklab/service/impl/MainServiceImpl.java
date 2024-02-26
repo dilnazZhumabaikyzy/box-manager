@@ -5,12 +5,9 @@ import kz.sparklab.entity.RawData;
 import kz.sparklab.service.MainService;
 import kz.sparklab.service.ProducerService;
 import lombok.extern.log4j.Log4j;
-import org.example.dao.AppUserDAO;
-import org.example.entity.AppUser;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 
 import static kz.sparklab.service.enums.BotCommands.*;
 

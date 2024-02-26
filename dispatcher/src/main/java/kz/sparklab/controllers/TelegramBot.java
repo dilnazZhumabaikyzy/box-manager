@@ -21,10 +21,10 @@ public class TelegramBot extends TelegramLongPollingBot {
     private String botName;
     @Value("${bot.token}")
     private String botToken;
-    final int RECONNECT_PAUSE =10000;
+    private static final int RECONNECT_PAUSE = 10000;
 
 
-    private UpdateController updateController;
+    private final UpdateController updateController;
 
     public TelegramBot(UpdateController updateController) {
         this.updateController = updateController;
@@ -71,7 +71,8 @@ public class TelegramBot extends TelegramLongPollingBot {
             try {
                 Thread.sleep(RECONNECT_PAUSE);
             } catch (InterruptedException e1) {
-                e1.printStackTrace();
+                log.error("Interrupted! ?", e1);
+                Thread.currentThread().interrupt();
                 return;
             }
             botConnect();

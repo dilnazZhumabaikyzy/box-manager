@@ -25,9 +25,6 @@ public class UpdateController {
     @Value("${spring.rabbitmq.queues.photo-message-update}")
     private String photoMessageUpdateQueue;
 
-    @Value("${spring.rabbitmq.queues.answer-message}")
-    private String answerMessageQueue;
-
     public UpdateController(MessageUtils messageUtils, UpdateProducer updateProducer) {
             this.messageUtils = messageUtils;
         this.updateProducer = updateProducer;
