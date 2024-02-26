@@ -1,0 +1,20 @@
+server:
+  port: 8084
+  ssl:
+    enabled: false
+
+bot:
+  name: kz_box_manager_bot
+  token: 6782433661:AAH4NAJSTSlNIeE2my4vW4pGGTCSYZI34RY
+
+spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: userok
+    password: p@ssw0rd
+    queues:
+      text-message-update: text_message_update
+      doc-message-update: doc_message_update
+      photo-message-update: photo_message_update
+      answer-message: answer_message

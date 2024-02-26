@@ -1,13 +1,12 @@
 package kz.sparklab.controllers;
 
-import kz.sparklab.MessageUtils;
+import kz.sparklab.utils.MessageUtils;
 import kz.sparklab.service.UpdateProducer;
 import lombok.extern.log4j.Log4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-
-import static kz.sparklab.model.RabbitQueue.*;
 
 @Controller
 @Log4j
@@ -15,6 +14,19 @@ public class UpdateController {
     private  TelegramBot telegramBot;
     private final MessageUtils messageUtils;
     private final UpdateProducer updateProducer;
+
+
+    @Value("${spring.rabbitmq.queues.text-message-update}")
+    private String textMessageUpdateQueue;
+
+    @Value("${spring.rabbitmq.queues.doc-message-update}")
+    private String docMessageUpdateQueue;
+
+    @Value("${spring.rabbitmq.queues.photo-message-update}")
+    private String photoMessageUpdateQueue;
+
+    @Value("${spring.rabbitmq.queues.answer-message}")
+    private String answerMessageQueue;
 
     public UpdateController(MessageUtils messageUtils, UpdateProducer updateProducer) {
             this.messageUtils = messageUtils;
@@ -54,16 +66,16 @@ public class UpdateController {
 
 
     private void processPhotoMessage(Update update) {
-        updateProducer.produce(PHOTO_MESSAGE_UPDATE, update);
+        updateProducer.produce(photoMessageUpdateQueue, update);
         setFileIsReceivedView(update);
     }
 
     private void processDocMessage(Update update) {
-        updateProducer.produce(DOC_MESSAGE_UPDATE, update);
+        updateProducer.produce(docMessageUpdateQueue, update);
     }
 
     private void processTextMessage(Update update) {
-        updateProducer.produce(TEXT_MESSAGE_UPDATE, update);
+        updateProducer.produce(textMessageUpdateQueue, update);
     }
 
     private void setUnsupportedMessageTypeView(Update update) {
