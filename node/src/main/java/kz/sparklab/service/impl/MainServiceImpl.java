@@ -40,6 +40,15 @@ public class MainServiceImpl implements MainService {
         sendAnswer(output, message.getChatId());
     }
 
+    @Override
+    public void processCallbackQuery(Update update) {
+        saveRawData(update);
+
+        var callback = update.getCallbackQuery();
+
+        sendAnswer(callback.getData(), callback.getMessage().getChatId());
+    }
+
     private void sendAnswer(String output, Long chatId) {
         var sendMessage = SendMessage.builder()
                 .chatId(chatId)
@@ -54,9 +63,19 @@ public class MainServiceImpl implements MainService {
         } else if (HELP.equals(cmd)) {
             return help();
         } else if (START.equals(cmd)) {
-            return "Привет, что бы посмотреть список команд используй /help";
+            return """
+                    Приветствую! Я - ваш персональный бот для управления боксами с одеждой благотворительного фонда. 
+                    
+                    Вот мои основные функции:  
+                  
+                    1. Просмотреть заполненность боксов: Вы можете узнать текущий процент заполненности боксов в различных точках города, просто отправив мне команду   
+                    
+                    2. Подписаться на уведомления: Вы сможете получать сообщения от меня когда какой то из боксов заплниться.
+                    
+                    3. Дополнительные функции (планируются): В будущем будут добавлены функции отчетов и статистики для более детального анализа работы и эффективности процесса сбора одежды.
+                    """;
         } else {
-            return "Unknown command";
+            return "Неизвестная команда";
         }
     }
 

@@ -13,6 +13,7 @@ spring:
       text-message-update: text_message_update
       doc-message-update: doc_message_update
       photo-message-update: photo_message_update
+      callback-data-update: callback_data_update
       answer-message: answer_message
   datasource:
     url: jdbc:postgresql://localhost:5432/pogreb
