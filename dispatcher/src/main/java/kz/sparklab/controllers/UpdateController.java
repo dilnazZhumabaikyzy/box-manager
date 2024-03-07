@@ -1,6 +1,5 @@
 package kz.sparklab.controllers;
 
-import kz.sparklab.utils.KeyBoardUtils;
 import kz.sparklab.utils.MessageUtils;
 import kz.sparklab.service.UpdateProducer;
 import lombok.extern.log4j.Log4j;
@@ -9,33 +8,22 @@ import org.springframework.stereotype.Controller;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Controller
 @Log4j
 public class UpdateController {
     private TelegramBot telegramBot;
     private final MessageUtils messageUtils;
-    private final KeyBoardUtils keyBoardUtils;
     private final UpdateProducer updateProducer;
 
 
     @Value("${spring.rabbitmq.queues.text-message-update}")
     private String textMessageUpdateQueue;
 
-    @Value("${spring.rabbitmq.queues.doc-message-update}")
-    private String docMessageUpdateQueue;
-
-    @Value("${spring.rabbitmq.queues.photo-message-update}")
-    private String photoMessageUpdateQueue;
-
     @Value("${spring.rabbitmq.queues.callback-data-update}")
     private String callbackDataUpdateQueue;
 
-    public UpdateController(MessageUtils messageUtils, KeyBoardUtils keyBoardUtils, UpdateProducer updateProducer) {
+    public UpdateController(MessageUtils messageUtils, UpdateProducer updateProducer) {
         this.messageUtils = messageUtils;
-        this.keyBoardUtils = keyBoardUtils;
         this.updateProducer = updateProducer;
     }
 
@@ -62,10 +50,6 @@ public class UpdateController {
         var message = update.getMessage();
         if (message.hasText()) {
             processTextMessage(update);
-        } else if (message.hasDocument()) {
-            processDocMessage(update);
-        } else if (message.hasPhoto()) {
-            processPhotoMessage(update);
         } else {
             setUnsupportedMessageTypeView(update);
         }
@@ -73,15 +57,6 @@ public class UpdateController {
 
     private void processCallbackQuery(Update update) {
         updateProducer.produce(callbackDataUpdateQueue, update);
-    }
-
-    private void processPhotoMessage(Update update) {
-        updateProducer.produce(photoMessageUpdateQueue, update);
-        setFileIsReceivedView(update);
-    }
-
-    private void processDocMessage(Update update) {
-        updateProducer.produce(docMessageUpdateQueue, update);
     }
 
     private void processTextMessage(Update update) {
@@ -94,21 +69,14 @@ public class UpdateController {
         setView(sendMessage);
     }
 
-    private void setFileIsReceivedView(Update update) {
-        var sendMessage = messageUtils.generateSendMessageWithText(update,
-                "Файл получен! Обрабатывается...");
-        setView(sendMessage);
-    }
-
-
-    public void setViewWithKeyboard(SendMessage sendMessage) {
-        List<String> keyboard = new ArrayList<>();
-        keyboard.add("Посмотреть заполненность");
-        keyboard.add("Подписаться на уведомления");
-        sendMessage.setReplyMarkup(keyBoardUtils.getInlineKeyboardMarkup(keyboard));
-
-        telegramBot.sendAnswerMessage(sendMessage);
-    }
+//    public void setViewWithKeyboard(SendMessage sendMessage) {
+//        List<String> keyboard = new ArrayList<>();
+//        keyboard.add("Посмотреть заполненность");
+//        keyboard.add("Подписаться на уведомления");
+//        sendMessage.setReplyMarkup(keyBoardUtils.getInlineKeyboardMarkup(keyboard));
+//
+//        telegramBot.sendAnswerMessage(sendMessage);
+//    }
 
     public void setView(SendMessage sendMessage) {
         telegramBot.sendAnswerMessage(sendMessage);

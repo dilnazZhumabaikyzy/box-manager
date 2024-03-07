@@ -34,18 +34,4 @@ public class ConsumerServiceImpl implements ConsumerService {
         mainService.processCallbackQuery(update);
 
     }
-
-    @Override
-    @RabbitListener(queues = "${spring.rabbitmq.queues.doc-message-update}")
-    public void consumeDocMessageUpdates(Update update) {
-        log.debug("NODE: Doc message is received");
-
-    }
-
-    @Override
-    @RabbitListener(queues = "${spring.rabbitmq.queues.photo-message-update}")
-    public void consumePhotoMessageUpdates(Update update) {
-        log.debug("NODE: Photo message is received");
-
-    }
 }

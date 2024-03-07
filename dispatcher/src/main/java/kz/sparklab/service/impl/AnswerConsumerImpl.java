@@ -21,6 +21,6 @@ public class AnswerConsumerImpl implements AnswerConsumer {
     @Override
     @RabbitListener(queues = "${spring.rabbitmq.queues.answer-message}")
     public void consume(SendMessage sendMessage) {
-        this.updateController.setViewWithKeyboard(sendMessage);
+        this.updateController.setView(sendMessage);
     }
 }

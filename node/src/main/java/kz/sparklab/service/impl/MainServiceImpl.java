@@ -1,15 +1,17 @@
 package kz.sparklab.service.impl;
 
-import kz.sparklab.dao.RawDataDAO;
-import kz.sparklab.entity.RawData;
 import kz.sparklab.service.MainService;
 import kz.sparklab.service.ProducerService;
+import kz.sparklab.utils.KeyBoardUtils;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import static kz.sparklab.service.enums.BotCommands.*;
+import static kz.sparklab.service.enums.BotCallbacks.*;
 
 
 @Service
@@ -17,53 +19,7 @@ import static kz.sparklab.service.enums.BotCommands.*;
 public class MainServiceImpl implements MainService {
 
     private static final String HELP_TEXT = "/get_fullness - for getting fullness of all boxes\n";
-
-    private final RawDataDAO rawDataDAO;
-    private final ProducerService producerService;
-
-    public MainServiceImpl(RawDataDAO rawDataDAO, ProducerService producerService) { // AppUserDAO
-        this.rawDataDAO = rawDataDAO;
-        this.producerService = producerService;
-    }
-
-
-    @Override
-    public void processTextMessage(Update update) {
-        saveRawData(update);
-
-        var message = update.getMessage();
-        var text = message.getText();
-        var output = "";
-
-        output = processServiceCommand(text);
-
-        sendAnswer(output, message.getChatId());
-    }
-
-    @Override
-    public void processCallbackQuery(Update update) {
-        saveRawData(update);
-
-        var callback = update.getCallbackQuery();
-
-        sendAnswer(callback.getData(), callback.getMessage().getChatId());
-    }
-
-    private void sendAnswer(String output, Long chatId) {
-        var sendMessage = SendMessage.builder()
-                .chatId(chatId)
-                .text(output)
-                .build();
-
-        producerService.produceAnswer(sendMessage);
-    }
-    private String processServiceCommand(String cmd) {
-        if (GET_FULLNESS.equals(cmd)) {
-            return "Unavailable now";
-        } else if (HELP.equals(cmd)) {
-            return help();
-        } else if (START.equals(cmd)) {
-            return """
+    private static final String GREETING_TEXT = """
                     Приветствую! Я - ваш персональный бот для управления боксами с одеждой благотворительного фонда. 
                     
                     Вот мои основные функции:  
@@ -74,19 +30,120 @@ public class MainServiceImpl implements MainService {
                     
                     3. Дополнительные функции (планируются): В будущем будут добавлены функции отчетов и статистики для более детального анализа работы и эффективности процесса сбора одежды.
                     """;
+    private static final String FULLNESS_EXAMPLE = """
+                1. Достык Плаза                          \s
+                    🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  97%
+                                
+                2. Астана Тауэрс                         \s
+                    🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  86%
+                                
+                3. Байтерек                              \s
+                    🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  80%
+                                
+                4. Музей                                 \s
+                    🟨 🟨 🟨 🟨 🟨 🟨 🟨  75%
+                                
+                5. Хан Шатыр                             \s
+                    🟩 🟩 🟩  35%
+                                
+                6. Хан Шатыр                             \s
+                    🟩 🟩 🟩  35%
+                """;
+
+    private final ProducerService producerService;
+    private final KeyBoardUtils keyBoardUtils;
+
+    public MainServiceImpl(ProducerService producerService, KeyBoardUtils keyBoardUtils) {
+        this.producerService = producerService;
+        this.keyBoardUtils = keyBoardUtils;
+    }
+
+
+    @Override
+    public void processTextMessage(Update update) {
+        var message = update.getMessage();
+
+        var outputMessage = processServiceCommand(message);
+
+        sendAnswer(outputMessage);
+    }
+
+    @Override
+    public void processCallbackQuery(Update update) {
+        var callback = update.getCallbackQuery();
+
+        var outputMessage = processCallbackContent(callback);
+
+        sendAnswer(outputMessage);
+    }
+
+    private SendMessage processCallbackContent(CallbackQuery callback) {
+        var callbackData = callback.getData();
+
+        if (SHOW_FULLNESS.isEqual(callbackData)) {
+            return getFullnessInfo(callback);
+        } else if(FOLLOW_NOTIFICATIONS.isEqual(callbackData)) {
+            return followNotification(callback);
+        }
+
+        return SendMessage.builder()
+                .text("Неизвестная команда")
+                .chatId(callback.getMessage().getChatId())
+                .build() ;
+    }
+
+    private SendMessage followNotification(CallbackQuery callback) {
+        return SendMessage.builder()
+                .text("Временно Недоступно")
+                .chatId(callback.getMessage().getChatId())
+                .build();
+    }
+
+    private SendMessage getFullnessInfo(CallbackQuery callback) {
+        return SendMessage.builder()
+                .chatId(callback.getMessage().getChatId())
+                .text(FULLNESS_EXAMPLE)
+                .build();
+    }
+
+    private SendMessage processServiceCommand(Message message) {
+        var text = message.getText();
+
+        if (GET_FULLNESS.equals(text)) {
+            return getUnavailableCommandMessage(message);
+        } else if (HELP.equals(text)) {
+            return getHelpMessage(message);
+        } else if (START.equals(text)) {
+            return getGreetingMessage(message);
         } else {
-            return "Неизвестная команда";
+            return getUnavailableCommandMessage(message);
         }
     }
 
-    private String help() {
-        return HELP_TEXT;
+    private SendMessage getUnavailableCommandMessage(Message message) {
+        return SendMessage.builder()
+                .text("Неизвестная команда")
+                .chatId(message.getChatId())
+                .build();
     }
 
-    public void saveRawData(Update update) {
-        RawData rawData = RawData.builder().event(update).build();
+    private SendMessage getHelpMessage(Message message) {
+        return SendMessage.builder()
+                .text(HELP_TEXT)
+                .chatId(message.getChatId())
+                .build();
+    }
 
-        rawDataDAO.save(rawData);
-        log.debug("Update Saved");
+    private SendMessage getGreetingMessage(Message message) {
+        return SendMessage.builder()
+                .chatId(message.getChatId())
+                .text(GREETING_TEXT)
+                .replyMarkup(keyBoardUtils.getInlineKeyboardMarkup("Посмотреть заполненность",
+                                                                            "Подписаться на уведомления"))
+                .build();
+    }
+
+    private void sendAnswer(SendMessage sendMessage) {
+        producerService.produceAnswer(sendMessage);
     }
 }

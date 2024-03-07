@@ -5,22 +5,22 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
 public class KeyBoardUtils {
     
-    public InlineKeyboardMarkup getInlineKeyboardMarkup(List<String> keyboard) {
+    public InlineKeyboardMarkup getInlineKeyboardMarkup(String... buttons) {
         
         List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
 
-        for (String buttonText : keyboard) {
+        Arrays.stream(buttons).forEach((String buttonText) -> {
             List<InlineKeyboardButton> row = new ArrayList<>();
-            String callBack = String.format("Button '%s'", buttonText);
-            row.add(InlineKeyboardButton.builder().text(buttonText).callbackData(callBack).build());
+            row.add(InlineKeyboardButton.builder().text(buttonText).callbackData(buttonText).build());
 
             rowList.add(row);
-        }
+        });
         
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         inlineKeyboardMarkup.setKeyboard(rowList);
