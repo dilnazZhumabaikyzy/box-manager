@@ -22,7 +22,7 @@ public class BoxController {
         BoxDto createdBox = boxService.create(box);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBox);
     }
-    @PostMapping("/update")
+    @PutMapping
     public ResponseEntity<BoxDto> update(@RequestBody BoxDto box){
         BoxDto updatedBox = boxService.update(box);
         return ResponseEntity.status(HttpStatus.OK).body(updatedBox);

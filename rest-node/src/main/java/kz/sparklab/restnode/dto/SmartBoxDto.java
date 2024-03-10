@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SmartBoxDto{
+public class SmartBoxDto extends BoxDto{
     private int sensorHeight;
     private boolean isActive;
 
@@ -19,6 +19,5 @@ public class SmartBoxDto{
         this.isActive = smartBox.isActive();
         this.sensorHeight = smartBox.getSensorHeight();
     }
-
 
 }

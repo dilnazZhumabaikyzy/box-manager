@@ -7,10 +7,7 @@ import kz.sparklab.restnode.model.SmartBox;
 import kz.sparklab.restnode.service.SmartBoxService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("smart")
@@ -27,10 +24,20 @@ public class SmartBoxController {
         SmartBoxDto createdSmartBox = smartBoxService.create(smartBoxDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdSmartBox);
     }
-//    @Transactional
-//    @PostMapping("/box")
-//    public ResponseEntity<SmartBoxDto> createOnExistBox(@RequestBody SmartBoxDto SmartBoxDto) {
-//        SmartBoxDto createdSmartBox = smartBoxService.createOnExistBox(SmartBoxDto);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(createdSmartBox);
-//    }
+
+    @PostMapping("/box")
+    public ResponseEntity<SmartBoxDto> createOnExistBox(@RequestBody SmartBoxDto SmartBoxDto) {
+        SmartBoxDto createdSmartBox = smartBoxService.createOnExistBox(SmartBoxDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdSmartBox);
+    }
+    @DeleteMapping
+    public ResponseEntity<Void> delete(@RequestBody SmartBoxDto SmartBoxDto) {
+        smartBoxService.delete(SmartBoxDto);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    @PutMapping
+    public ResponseEntity<SmartBoxDto> update(@RequestBody SmartBoxDto SmartBoxDto) {
+        SmartBoxDto updatedBox = smartBoxService.update(SmartBoxDto);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedBox);
+    }
 }

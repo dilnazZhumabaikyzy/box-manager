@@ -1,8 +1,7 @@
 package kz.sparklab.restnode.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -11,8 +10,8 @@ import java.util.Set;
 @Table(name = "smart_box")
 @Getter
 @Setter
-
-public class SmartBox{
+@PrimaryKeyJoinColumn(name = "box_id")
+public class SmartBox extends Box{
     @Id
     @Column(name = "box_id")
     private Long id;
@@ -20,8 +19,5 @@ public class SmartBox{
     private int sensorHeight;
     @OneToMany(mappedBy="box")
     private Set<SensorReport>  reports = new HashSet<>();
-    @OneToOne
-    @MapsId
-    @JoinColumn(name = "box_id")
-    private Box box;
+
 }

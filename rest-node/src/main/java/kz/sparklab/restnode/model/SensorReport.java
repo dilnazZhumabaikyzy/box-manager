@@ -17,7 +17,7 @@ public class SensorReport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
-    @JoinColumn(name="box_id")
+    @JoinColumn(name = "box_name",referencedColumnName = "name")
     private SmartBox box;
     private double fullness;
     @CreationTimestamp

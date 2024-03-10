@@ -9,8 +9,7 @@ import lombok.*;
 @Table(name = "box")
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Box {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +27,4 @@ public class Box {
     private int width;
     @Column(nullable = false)
     private int length;
-    @OneToOne(mappedBy = "box", cascade = CascadeType.ALL)
-    @PrimaryKeyJoinColumn
-    private SmartBox smartBox;
 }
