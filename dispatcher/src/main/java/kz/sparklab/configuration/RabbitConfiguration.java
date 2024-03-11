@@ -15,14 +15,11 @@ public class RabbitConfiguration {
     @Value("${spring.rabbitmq.queues.text-message-update}")
     private String textMessageUpdateQueue;
 
-    @Value("${spring.rabbitmq.queues.doc-message-update}")
-    private String docMessageUpdateQueue;
-
-    @Value("${spring.rabbitmq.queues.photo-message-update}")
-    private String photoMessageUpdateQueue;
-
     @Value("${spring.rabbitmq.queues.answer-message}")
     private String answerMessageQueue;
+
+    @Value("${spring.rabbitmq.queues.callback-data-update")
+    private String callbackQueryQueue;
 
     @Bean
     public MessageConverter jsonMessageConverter() {
@@ -35,13 +32,8 @@ public class RabbitConfiguration {
     }
 
     @Bean
-    public Queue docMessageQueue() {
-        return new Queue(docMessageUpdateQueue);
-    }
-
-    @Bean
-    public Queue photoMessageQueue() {
-        return new Queue(photoMessageUpdateQueue);
+    public Queue callbackQueryQueue() {
+        return new Queue(callbackQueryQueue);
     }
 
     @Bean

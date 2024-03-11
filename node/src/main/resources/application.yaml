@@ -14,6 +14,7 @@ spring:
       doc-message-update: doc_message_update
       photo-message-update: photo_message_update
       answer-message: answer_message
+      callback-data-update: callback_data_update
   datasource:
     url: jdbc:postgresql://localhost:5432/pogreb
     username: userok
