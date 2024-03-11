@@ -1,8 +1,7 @@
 package kz.sparklab.restnode.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
@@ -12,6 +11,9 @@ import java.util.Date;
 @Table(name = "sensor_report")
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SensorReport {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
