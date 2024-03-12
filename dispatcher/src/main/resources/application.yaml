@@ -15,7 +15,6 @@ spring:
     password: p@ssw0rd
     queues:
       text-message-update: text_message_update
-      doc-message-update: doc_message_update
-      photo-message-update: photo_message_update
       callback-data-update: callback_data_update
       answer-message: answer_message
+      answer-callback-query: answer_callback_query

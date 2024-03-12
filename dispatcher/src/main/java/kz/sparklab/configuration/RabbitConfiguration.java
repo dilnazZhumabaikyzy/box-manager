@@ -18,9 +18,11 @@ public class RabbitConfiguration {
     @Value("${spring.rabbitmq.queues.answer-message}")
     private String answerMessageQueue;
 
-    @Value("${spring.rabbitmq.queues.callback-data-update")
+    @Value("${spring.rabbitmq.queues.callback-data-update}")
     private String callbackQueryQueue;
 
+    @Value("${spring.rabbitmq.queues.answer-callback-query}")
+    private String answerCallbackQueryQueue;
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
@@ -39,5 +41,10 @@ public class RabbitConfiguration {
     @Bean
     public Queue answerMessageQueue() {
         return new Queue(answerMessageQueue);
+    }
+
+    @Bean
+    public Queue answerCallbackQueryQueue() {
+        return new Queue(answerCallbackQueryQueue);
     }
 }

@@ -2,7 +2,9 @@ package kz.sparklab.utils;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,5 +28,24 @@ public class KeyBoardUtils {
         inlineKeyboardMarkup.setKeyboard(rowList);
 
         return inlineKeyboardMarkup;
+    }
+
+    public ReplyKeyboardMarkup getReplyKeyBoardMarkup(String... buttons) {
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+
+
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        Arrays.stream(buttons).forEach((String buttonText) -> {
+            KeyboardRow row = new KeyboardRow();
+
+            row.add(buttonText);
+
+            keyboard.add(row);
+        });
+
+        keyboardMarkup.setResizeKeyboard(true);
+        keyboardMarkup.setKeyboard(keyboard);
+
+        return keyboardMarkup;
     }
 }

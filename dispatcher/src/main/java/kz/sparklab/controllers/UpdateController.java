@@ -5,6 +5,7 @@ import kz.sparklab.service.UpdateProducer;
 import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -71,5 +72,9 @@ public class UpdateController {
 
     public void setView(SendMessage sendMessage) {
         telegramBot.sendAnswerMessage(sendMessage);
+    }
+
+    public void setCallbackView(AnswerCallbackQuery answerCallbackQuery) {
+        telegramBot.sendCallbackAnswer(answerCallbackQuery);
     }
 }

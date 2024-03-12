@@ -1,10 +1,13 @@
 package kz.sparklab.service.impl;
 
+import kz.sparklab.dto.CallbackResponse;
 import kz.sparklab.service.MainService;
 import kz.sparklab.service.ProducerService;
 import kz.sparklab.utils.KeyBoardUtils;
 import lombok.extern.log4j.Log4j;
+import org.aspectj.weaver.ast.Call;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -20,35 +23,35 @@ public class MainServiceImpl implements MainService {
 
     private static final String HELP_TEXT = "/get_fullness - for getting fullness of all boxes\n";
     private static final String GREETING_TEXT = """
-                    Приветствую! Я - ваш персональный бот для управления боксами с одеждой благотворительного фонда. 
-                    
-                    Вот мои основные функции:  
-                  
-                    1. Просмотреть заполненность боксов: Вы можете узнать текущий процент заполненности боксов в различных точках города, просто отправив мне команду   
-                    
-                    2. Подписаться на уведомления: Вы сможете получать сообщения от меня когда какой то из боксов заплниться.
-                    
-                    3. Дополнительные функции (планируются): В будущем будут добавлены функции отчетов и статистики для более детального анализа работы и эффективности процесса сбора одежды.
-                    """;
+            Приветствую! Я - ваш персональный бот для управления боксами с одеждой благотворительного фонда. 
+                                
+            Вот мои основные функции:  
+                              
+            1. **Просмотреть заполненность**: Вы можете узнать текущий процент заполненности боксов в различных точках города, просто отправив мне команду   
+                                
+            2. **Подписаться на уведомления**: Вы сможете получать сообщения от меня когда какой то из боксов заплниться.
+                                
+            3. Дополнительные функции (планируются): В будущем будут добавлены функции отчетов и статистики для более детального анализа работы и эффективности процесса сбора одежды.
+            """;
     private static final String FULLNESS_EXAMPLE = """
-                1. Достык Плаза                          \s
-                    🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  97%
-                                
-                2. Астана Тауэрс                         \s
-                    🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  86%
-                                
-                3. Байтерек                              \s
-                    🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  80%
-                                
-                4. Музей                                 \s
-                    🟨 🟨 🟨 🟨 🟨 🟨 🟨  75%
-                                
-                5. Хан Шатыр                             \s
-                    🟩 🟩 🟩  35%
-                                
-                6. Хан Шатыр                             \s
-                    🟩 🟩 🟩  35%
-                """;
+            1. Достык Плаза                          \s
+                🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  97%
+                            
+            2. Астана Тауэрс                         \s
+                🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  86%
+                            
+            3. Байтерек                              \s
+                🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  80%
+                            
+            4. Музей                                 \s
+                🟨 🟨 🟨 🟨 🟨 🟨 🟨  75%
+                            
+            5. Хан Шатыр                             \s
+                🟩 🟩 🟩  35%
+                            
+            6. Хан Шатыр                             \s
+                🟩 🟩 🟩  35%
+            """;
 
     private final ProducerService producerService;
     private final KeyBoardUtils keyBoardUtils;
@@ -74,22 +77,29 @@ public class MainServiceImpl implements MainService {
 
         var outputMessage = processCallbackContent(callback);
 
-        sendAnswer(outputMessage);
+        sendCallbackAnswer(outputMessage);
     }
 
-    private SendMessage processCallbackContent(CallbackQuery callback) {
+    private CallbackResponse
+    processCallbackContent(CallbackQuery callback) {
         var callbackData = callback.getData();
 
-        if (SHOW_FULLNESS.isEqual(callbackData)) {
-            return getFullnessInfo(callback);
-        } else if(FOLLOW_NOTIFICATIONS.isEqual(callbackData)) {
-            return followNotification(callback);
+        if (SHOW_ONLY_RED.isEqual(callbackData)
+                || SHOW_ONLY_GREEN.isEqual(callbackData)
+                || SHOW_ONLY_YELLOW.isEqual(callbackData)) {
+            return getFullnessInfo(callbackData, callback);
         }
 
-        return SendMessage.builder()
-                .text("Неизвестная команда")
-                .chatId(callback.getMessage().getChatId())
-                .build() ;
+
+
+        return CallbackResponse.builder()
+                .answerCallbackQuery(
+                        AnswerCallbackQuery.builder()
+                                .callbackQueryId(callback.getId())
+                                .text("Неизвестная команда")
+                                .build()
+                )
+                .build();
     }
 
     private SendMessage followNotification(CallbackQuery callback) {
@@ -99,18 +109,40 @@ public class MainServiceImpl implements MainService {
                 .build();
     }
 
-    private SendMessage getFullnessInfo(CallbackQuery callback) {
-        return SendMessage.builder()
+    private CallbackResponse getFullnessInfo(String color, CallbackQuery callback) {
+        AnswerCallbackQuery answerCallbackQuery = AnswerCallbackQuery.builder()
+                .callbackQueryId(callback.getId())
+                .text(color)
+                .build();
+
+        SendMessage sendMessage = SendMessage.builder()
+                .text(color)
                 .chatId(callback.getMessage().getChatId())
+                .build();
+
+        return CallbackResponse.builder()
+                .answerCallbackQuery(answerCallbackQuery)
+                .sendMessage(sendMessage)
+                .build();
+    }
+
+    private SendMessage getFullnessInfo(Message message) {
+        return SendMessage.builder()
+                .chatId(message.getChatId())
                 .text(FULLNESS_EXAMPLE)
+                .replyMarkup(keyBoardUtils.getInlineKeyboardMarkup(
+                        SHOW_ONLY_RED.toString(),
+                        SHOW_ONLY_YELLOW.toString(),
+                        SHOW_ONLY_GREEN.toString(),
+                        "hi"))
                 .build();
     }
 
     private SendMessage processServiceCommand(Message message) {
         var text = message.getText();
 
-        if (GET_FULLNESS.equals(text)) {
-            return getUnavailableCommandMessage(message);
+        if (SHOW_FULLNESS.isEqual(text)) {
+            return getFullnessInfo(message);
         } else if (HELP.equals(text)) {
             return getHelpMessage(message);
         } else if (START.equals(text)) {
@@ -138,12 +170,22 @@ public class MainServiceImpl implements MainService {
         return SendMessage.builder()
                 .chatId(message.getChatId())
                 .text(GREETING_TEXT)
-                .replyMarkup(keyBoardUtils.getInlineKeyboardMarkup("Посмотреть заполненность",
-                        "Подписаться на уведомления"))
+                .replyMarkup(keyBoardUtils.getReplyKeyBoardMarkup(
+                        SHOW_FULLNESS.toString(),
+                        FOLLOW_NOTIFICATIONS.toString()))
                 .build();
+
+
     }
 
     private void sendAnswer(SendMessage sendMessage) {
         producerService.produceAnswer(sendMessage);
+    }
+    private void sendCallbackAnswer(CallbackResponse callbackResponse) {
+        if (callbackResponse.getAnswerCallbackQuery() != null)
+            producerService.produceCallbackAnswer(callbackResponse.getAnswerCallbackQuery());
+
+        if (callbackResponse.getSendMessage() != null)
+            producerService.produceAnswer(callbackResponse.getSendMessage());
     }
 }

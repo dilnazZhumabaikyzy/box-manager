@@ -29,7 +29,7 @@ public class ConsumerServiceImpl implements ConsumerService {
     @Override
     @RabbitListener(queues = "${spring.rabbitmq.queues.callback-data-update}")
     public void consumeCallbackQueryUpdates(Update update) {
-        log.debug("NODE: Text message is received");
+        log.debug("NODE: Text callback is received");
 
         mainService.processCallbackQuery(update);
     }
