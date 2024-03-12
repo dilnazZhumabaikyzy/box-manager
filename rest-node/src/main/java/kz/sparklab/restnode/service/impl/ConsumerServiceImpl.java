@@ -7,8 +7,8 @@ import lombok.extern.log4j.Log4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
+//@Log4j
 @Service
-@Log4j
 public class ConsumerServiceImpl implements ConsumerService {
     private final SensorReportService sensorReportService;
 
@@ -19,7 +19,8 @@ public class ConsumerServiceImpl implements ConsumerService {
     @Override
     @RabbitListener(queues = "${spring.rabbitmq.queues.sensor-report}")
     public void consumeSensorReport(EmailRequest emailRequest) {
-        log.debug("REST-NODE: EmailRequest is received");
+//        log.debug("REST-NODE: EmailRequest is received");
+        System.out.println("REST-NODE: EmailRequest is received");
         sensorReportService.processInboundEmailReport(emailRequest);
     }
 }

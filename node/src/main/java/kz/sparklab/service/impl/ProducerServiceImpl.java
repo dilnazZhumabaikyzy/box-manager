@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 @Service
 public class ProducerServiceImpl implements ProducerService {
+
     @Value("${spring.rabbitmq.queues.answer-message}")
     private String answerMessageQueue;
 
