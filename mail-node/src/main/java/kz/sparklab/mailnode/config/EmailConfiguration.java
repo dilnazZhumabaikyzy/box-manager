@@ -1,32 +1,26 @@
 package kz.sparklab.mailnode.config;
 
 import kz.sparklab.mailnode.EmailListener;
-import kz.sparklab.mailnode.service.ProducerService;
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
+import kz.sparklab.mailnode.service.ProduceMessageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import jakarta.mail.*;
 import java.util.Properties;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+
+
+
 
 @Configuration
 public class EmailConfiguration {
-
-
-//  @Value("${email.host}")
     private String emailHost = "imap.gmail.com";
-
-//    @Value("${email.port}")
     private String emailPort = "993";
-
-//    @Value("${email.username}")
     private String emailUsername = "aestgreat@gmail.com";
-
-//    @Value("${email.password}")
     private String emailPassword = "qxerpvuyznnzatdi";
 
     @Bean
@@ -42,29 +36,28 @@ public class EmailConfiguration {
 
         return session;
     }
+
+
     @Bean
-    public ConnectionFactory connectionFactory() {
-        CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-        connectionFactory.setHost("localhost");
-        connectionFactory.setPort(5672);
+    public CachingConnectionFactory connectionFactory() {
+        CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
         connectionFactory.setUsername("userok");
         connectionFactory.setPassword("p@ssw0rd");
+     //   connectionFactory.setCacheMode(CachingConnectionFactory.CacheMode.CONNECTION);
         return connectionFactory;
     }
+
     @Bean
     public RabbitTemplate rabbitTemplate() {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate();
-        rabbitTemplate.setConnectionFactory(connectionFactory()); // Set ConnectionFactory
-        return rabbitTemplate;
+        return new RabbitTemplate(connectionFactory());
     }
 
     @Bean
-    public ProducerService producerService() {
-        return new ProducerService(rabbitTemplate());
+    public ProduceMessageService produceMessageService() {
+        return new ProduceMessageService(rabbitTemplate());
     }
-
     @Bean
     public EmailListener emailListener() {
-        return new EmailListener(mailSession(), emailUsername, emailPassword, producerService());
+        return new EmailListener(mailSession(), emailUsername, emailPassword, produceMessageService());
     }
 }

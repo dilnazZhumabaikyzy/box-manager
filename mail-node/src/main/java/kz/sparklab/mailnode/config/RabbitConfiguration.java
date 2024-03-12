@@ -1,22 +1,58 @@
 package kz.sparklab.mailnode.config;
 
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfiguration {
 
-     private String sensorReportQueue = "sensor_report";
+
+    public static final String QUEUE_NAME = "sensor_report";
+    public static final String EXCHANGE_NAME = "myTopicExchange";
+    public static final String ROUTING_KEY = "myRoutingKey.#";
+
     @Bean
-    public Queue sensorReportQueue() {
-        return new Queue(sensorReportQueue);
+    Queue createQueue() {
+        return new Queue(QUEUE_NAME, false);
     }
 
     @Bean
-    public MessageConverter jsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+    TopicExchange exchange() {
+        return new TopicExchange(EXCHANGE_NAME);
     }
+
+    @Bean
+    Binding binding(Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
+    }
+
+
+    @Bean
+    SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        return container;
+    }
+
+//    @Bean
+//    SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
+//        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+//        container.setConnectionFactory(connectionFactory);
+//        container.setMe(jsonMessageConverter);
+//        return container;
+//    }
+//    @Bean
+//    public Jackson2JsonMessageConverter jsonMessageConverter() {
+//        return new Jackson2JsonMessageConverter();
+//    }
 }

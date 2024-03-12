@@ -17,7 +17,7 @@ public class ConsumerServiceImpl implements ConsumerService {
     }
 
     @Override
-    @RabbitListener(queues = "${spring.rabbitmq.queues.sensor-report}")
+    @RabbitListener(queues = "sensor_report")
     public void consumeSensorReport(EmailRequest emailRequest) {
 //        log.debug("REST-NODE: EmailRequest is received");
         System.out.println("REST-NODE: EmailRequest is received");

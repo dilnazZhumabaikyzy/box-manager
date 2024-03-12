@@ -6,23 +6,23 @@ import jakarta.mail.*;
 import com.sun.mail.imap.IMAPFolder;
 import jakarta.mail.event.MessageCountAdapter;
 import jakarta.mail.event.MessageCountEvent;
-import kz.sparklab.mailnode.service.ProducerService;
+import kz.sparklab.mailnode.service.ProduceMessageService;
 
-import javax.lang.model.element.ModuleElement;
 import java.io.IOException;
 public class EmailListener extends MessageCountAdapter {
     private Session session;
     private String username;
     private String password;
 
-    private ProducerService producerService;
+    private ProduceMessageService produceMessageService;
 
 
-    public EmailListener(Session session, String username, String password, ProducerService producerService) {
+
+    public EmailListener(Session session, String username, String password, ProduceMessageService produceMessageService) {
         this.session = session;
         this.username = username;
         this.password = password;
-        this.producerService = producerService;
+        this.produceMessageService = produceMessageService;
     }
 
     public void startListening() throws MessagingException, InterruptedException, IOException {
@@ -52,8 +52,8 @@ public class EmailListener extends MessageCountAdapter {
                         emailRequest.setSender("200107114@stu.sdu.edu.kz");
                         emailRequest.setMailBody("{\"box_name\":\"1\", \"fullness\":\"121\"}");
 
-                        producerService.produceSensorReport(emailRequest);
-
+                       // producerService.produceSensorReport(emailRequest);
+                        produceMessageService.produceMessage("Hi");
                         System.out.println("New email received: " + message.getSubject());
                     } catch (MessagingException e) {
                         e.printStackTrace();
