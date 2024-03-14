@@ -1,5 +1,6 @@
 package kz.sparklab.mailnode;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Getter
@@ -8,7 +9,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmailRequest {
-    private String sender;
-    private String subject;
-    private String mailBody;
+    @JsonProperty("box_name")
+    private String boxName;
+
+    @JsonProperty("fullness")
+    private String fullness;
 }

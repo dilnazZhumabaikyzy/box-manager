@@ -2,6 +2,8 @@ package kz.sparklab.mailnode.config;
 
 import kz.sparklab.mailnode.EmailListener;
 import kz.sparklab.mailnode.service.ProduceMessageService;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -48,10 +50,17 @@ public class EmailConfiguration {
     }
 
     @Bean
-    public RabbitTemplate rabbitTemplate() {
-        return new RabbitTemplate(connectionFactory());
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
     }
 
+    @Bean
+    public RabbitTemplate rabbitTemplate() {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate();
+        rabbitTemplate.setConnectionFactory(connectionFactory());
+        rabbitTemplate.setMessageConverter(jsonMessageConverter());
+        return rabbitTemplate;
+    }
     @Bean
     public ProduceMessageService produceMessageService() {
         return new ProduceMessageService(rabbitTemplate());

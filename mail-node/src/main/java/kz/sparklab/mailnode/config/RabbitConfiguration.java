@@ -44,15 +44,4 @@ public class RabbitConfiguration {
         return container;
     }
 
-//    @Bean
-//    SimpleMessageListenerContainer container(ConnectionFactory connectionFactory) {
-//        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-//        container.setConnectionFactory(connectionFactory);
-//        container.setMe(jsonMessageConverter);
-//        return container;
-//    }
-//    @Bean
-//    public Jackson2JsonMessageConverter jsonMessageConverter() {
-//        return new Jackson2JsonMessageConverter();
-//    }
 }

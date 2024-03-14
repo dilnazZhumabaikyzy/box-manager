@@ -6,6 +6,7 @@ import jakarta.mail.*;
 import com.sun.mail.imap.IMAPFolder;
 import jakarta.mail.event.MessageCountAdapter;
 import jakarta.mail.event.MessageCountEvent;
+import jakarta.mail.internet.MimeMultipart;
 import kz.sparklab.mailnode.service.ProduceMessageService;
 
 import java.io.IOException;
@@ -46,17 +47,32 @@ public class EmailListener extends MessageCountAdapter {
                 for (Message message : messages) {
 
                     try {
+                        String senderEmail = getEmailFromAddress(message.getFrom());
+//                        if (senderEmail.equals("aestgreat@gmail.com")){
+                         if (true){
+                            String boxName = message.getSubject();
+                            String fullness = getMessageContent(message);
+                            System.out.println("Message subject: "+boxName);
+                            System.out.println("Message content: " + fullness);
 
-                        EmailRequest emailRequest = new EmailRequest();
-                        emailRequest.setSubject(message.getSubject());
-                        emailRequest.setSender("200107114@stu.sdu.edu.kz");
-                        emailRequest.setMailBody("{\"box_name\":\"1\", \"fullness\":\"121\"}");
 
-                       // producerService.produceSensorReport(emailRequest);
-                        produceMessageService.produceMessage("Hi");
+                            EmailRequest emailRequest = new EmailRequest();
+                            emailRequest.setBoxName(boxName);
+                            emailRequest.setFullness(fullness);
+
+
+                            produceMessageService.produceMessage(emailRequest);
+                        } else {
+                            System.out.println("Email address: " + senderEmail + " is not aestgreat@gmail.com");
+                        }
+
+
                         System.out.println("New email received: " + message.getSubject());
                     } catch (MessagingException e) {
                         e.printStackTrace();
+                    }
+                    catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }
@@ -79,4 +95,42 @@ public class EmailListener extends MessageCountAdapter {
             keepAliveThread.interrupt();
         }
     }
+
+    private String getEmailFromAddress(Address[] addresses) {
+        String senderEmail = "";
+        if (addresses != null && addresses.length > 0) {
+            String address = addresses[0].toString();
+            // Extract email address part
+            if (address.contains("<") && address.contains(">")) {
+                senderEmail = address.substring(address.indexOf("<") + 1, address.indexOf(">"));
+            } else {
+                senderEmail = address;
+            }
+        }
+        return senderEmail;
+    }
+    // Method to get the content of the message
+    private String getMessageContent(Message message) throws MessagingException, IOException {
+        String content = "";
+        Object messageContent = message.getContent();
+
+        if (messageContent instanceof String) {
+            // Content is plain text
+            content = (String) messageContent;
+        } else if (messageContent instanceof MimeMultipart) {
+            // Content is multipart (may contain attachments)
+            MimeMultipart multipart = (MimeMultipart) messageContent;
+            int count = multipart.getCount();
+            for (int i = 0; i < count; i++) {
+                BodyPart bodyPart = multipart.getBodyPart(i);
+                if (bodyPart.isMimeType("text/plain")) {
+                    // Found plain text part
+                    content += bodyPart.getContent().toString();
+                }
+            }
+        }
+
+        return content;
+    }
+
 }
