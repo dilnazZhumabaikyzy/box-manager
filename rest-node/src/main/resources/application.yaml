@@ -1,7 +1,8 @@
 server:
-  port: 8085
+  port: 8088
   ssl:
     enabled: false
+
 
 spring:
   rabbitmq:
@@ -10,10 +11,7 @@ spring:
     username: userok
     password: p@ssw0rd
     queues:
-      text-message-update: text_message_update
-      answer-message: answer_message
-      callback-data-update: callback_data_update
-      answer-callback-query: answer_callback_query
+      sensor-report: sensor_report
   datasource:
     url: jdbc:postgresql://localhost:5432/pogreb
     username: userok

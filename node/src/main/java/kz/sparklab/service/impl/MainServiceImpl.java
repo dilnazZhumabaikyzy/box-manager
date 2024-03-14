@@ -1,15 +1,20 @@
 package kz.sparklab.service.impl;
 
-import kz.sparklab.dao.RawDataDAO;
-import kz.sparklab.entity.RawData;
+import kz.sparklab.dto.CallbackResponse;
 import kz.sparklab.service.MainService;
 import kz.sparklab.service.ProducerService;
+import kz.sparklab.utils.KeyBoardUtils;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import static kz.sparklab.service.enums.BotCommands.*;
+import static kz.sparklab.service.enums.BotCallbacks.*;
+import static kz.sparklab.service.enums.BotCommands.HELP;
+import static kz.sparklab.service.enums.BotCommands.START;
 
 
 @Service
@@ -17,57 +22,169 @@ import static kz.sparklab.service.enums.BotCommands.*;
 public class MainServiceImpl implements MainService {
 
     private static final String HELP_TEXT = "/get_fullness - for getting fullness of all boxes\n";
+    private static final String GREETING_TEXT = """
+            Приветствую! Я - ваш персональный бот для управления боксами с одеждой благотворительного фонда. 
+                                
+            Вот мои основные функции:  
+                              
+            1. **Просмотреть заполненность**: Вы можете узнать текущий процент заполненности боксов в различных точках города, просто отправив мне команду   
+                                
+            2. **Подписаться на уведомления**: Вы сможете получать сообщения от меня когда какой то из боксов заплниться.
+                                
+            3. Дополнительные функции (планируются): В будущем будут добавлены функции отчетов и статистики для более детального анализа работы и эффективности процесса сбора одежды.
+            """;
+    private static final String FULLNESS_EXAMPLE = """
+            1. Достык Плаза                          \s
+                🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  97%
+                            
+            2. Астана Тауэрс                         \s
+                🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  86%
+                            
+            3. Байтерек                              \s
+                🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  80%
+                            
+            4. Музей                                 \s
+                🟨 🟨 🟨 🟨 🟨 🟨 🟨  75%
+                            
+            5. Хан Шатыр                             \s
+                🟩 🟩 🟩  35%
+                            
+            6. Хан Шатыр                             \s
+                🟩 🟩 🟩  35%
+            """;
 
-    private final RawDataDAO rawDataDAO;
     private final ProducerService producerService;
+    private final KeyBoardUtils keyBoardUtils;
 
-    public MainServiceImpl(RawDataDAO rawDataDAO, ProducerService producerService) { // AppUserDAO
-        this.rawDataDAO = rawDataDAO;
+    public MainServiceImpl(ProducerService producerService, KeyBoardUtils keyBoardUtils) {
         this.producerService = producerService;
+        this.keyBoardUtils = keyBoardUtils;
     }
 
 
     @Override
     public void processTextMessage(Update update) {
-        saveRawData(update);
-
         var message = update.getMessage();
+
+        var outputMessage = processServiceCommand(message);
+
+        sendAnswer(outputMessage);
+    }
+
+    @Override
+    public void processCallbackQuery(Update update) {
+        var callback = update.getCallbackQuery();
+
+        var outputMessage = processCallbackContent(callback);
+
+        sendCallbackAnswer(outputMessage);
+    }
+
+    private SendMessage processServiceCommand(Message message) {
         var text = message.getText();
-        var output = "";
 
-        output = processServiceCommand(text);
-
-        sendAnswer(output, message.getChatId());
-    }
-
-    private void sendAnswer(String output, Long chatId) {
-        var sendMessage = SendMessage.builder()
-                .chatId(chatId)
-                .text(output)
-                .build();
-
-        producerService.produceAnswer(sendMessage);
-    }
-    private String processServiceCommand(String cmd) {
-        if (GET_FULLNESS.equals(cmd)) {
-            return "Unavailable now";
-        } else if (HELP.equals(cmd)) {
-            return help();
-        } else if (START.equals(cmd)) {
-            return "Привет, что бы посмотреть список команд используй /help";
+        if (SHOW_FULLNESS.isEqual(text)) {
+            return getFullnessInfo(message);
+        } else if(FOLLOW_NOTIFICATIONS.isEqual(text)) {
+            return followNotification(message);
+        } else if (HELP.equals(text)) {
+            return getHelpMessage(message);
+        } else if (START.equals(text)) {
+            return getGreetingMessage(message);
         } else {
-            return "Unknown command";
+            return getUnavailableCommandMessage(message);
         }
     }
 
-    private String help() {
-        return HELP_TEXT;
+    private CallbackResponse processCallbackContent(CallbackQuery callback) {
+        var callbackData = callback.getData();
+
+        if (SHOW_ONLY_RED.isEqual(callbackData)
+                || SHOW_ONLY_GREEN.isEqual(callbackData)
+                || SHOW_ONLY_YELLOW.isEqual(callbackData)) {
+            return getFullnessInfo(callbackData, callback);
+        }
+
+        return CallbackResponse.builder()
+                .answerCallbackQuery(
+                        AnswerCallbackQuery.builder()
+                                .callbackQueryId(callback.getId())
+                                .text("Неизвестная команда")
+                                .build()
+                )
+                .build();
     }
 
-    public void saveRawData(Update update) {
-        RawData rawData = RawData.builder().event(update).build();
+    private SendMessage followNotification(Message message) {
+        return SendMessage.builder()
+                .text("Временно Недоступно :(")
+                .chatId(message.getChatId())
+                .build();
+    }
 
-        rawDataDAO.save(rawData);
-        log.debug("Update Saved");
+    private CallbackResponse getFullnessInfo(String color, CallbackQuery callback) {
+        AnswerCallbackQuery answerCallbackQuery = AnswerCallbackQuery.builder()
+                .callbackQueryId(callback.getId())
+                .text(color)
+                .build();
+
+        SendMessage sendMessage = SendMessage.builder()
+                .text(color)
+                .chatId(callback.getMessage().getChatId())
+                .build();
+
+        return CallbackResponse.builder()
+                .answerCallbackQuery(answerCallbackQuery)
+                .sendMessage(sendMessage)
+                .build();
+    }
+
+    private SendMessage getFullnessInfo(Message message) {
+        return SendMessage.builder()
+                .chatId(message.getChatId())
+                .text(FULLNESS_EXAMPLE)
+                .replyMarkup(keyBoardUtils.getInlineKeyboardMarkup(
+                        SHOW_ONLY_RED.toString(),
+                        SHOW_ONLY_YELLOW.toString(),
+                        SHOW_ONLY_GREEN.toString(),
+                        "hi"))
+                .build();
+    }
+
+    private SendMessage getUnavailableCommandMessage(Message message) {
+        return SendMessage.builder()
+                .text("Неизвестная команда")
+                .chatId(message.getChatId())
+                .build();
+    }
+
+    private SendMessage getHelpMessage(Message message) {
+        return SendMessage.builder()
+                .text(HELP_TEXT)
+                .chatId(message.getChatId())
+                .build();
+    }
+
+    private SendMessage getGreetingMessage(Message message) {
+        return SendMessage.builder()
+                .chatId(message.getChatId())
+                .text(GREETING_TEXT)
+                .replyMarkup(keyBoardUtils.getReplyKeyBoardMarkup(
+                        SHOW_FULLNESS.toString(),
+                        FOLLOW_NOTIFICATIONS.toString()))
+                .build();
+
+
+    }
+
+    private void sendAnswer(SendMessage sendMessage) {
+        producerService.produceAnswer(sendMessage);
+    }
+    private void sendCallbackAnswer(CallbackResponse callbackResponse) {
+        if (callbackResponse.getAnswerCallbackQuery() != null)
+            producerService.produceCallbackAnswer(callbackResponse.getAnswerCallbackQuery());
+
+        if (callbackResponse.getSendMessage() != null)
+            producerService.produceAnswer(callbackResponse.getSendMessage());
     }
 }
