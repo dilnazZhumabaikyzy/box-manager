@@ -5,7 +5,6 @@ import kz.sparklab.service.MainService;
 import kz.sparklab.service.ProducerService;
 import kz.sparklab.utils.KeyBoardUtils;
 import lombok.extern.log4j.Log4j;
-import org.aspectj.weaver.ast.Call;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -13,8 +12,9 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import static kz.sparklab.service.enums.BotCommands.*;
 import static kz.sparklab.service.enums.BotCallbacks.*;
+import static kz.sparklab.service.enums.BotCommands.HELP;
+import static kz.sparklab.service.enums.BotCommands.START;
 
 
 @Service
@@ -80,8 +80,23 @@ public class MainServiceImpl implements MainService {
         sendCallbackAnswer(outputMessage);
     }
 
-    private CallbackResponse
-    processCallbackContent(CallbackQuery callback) {
+    private SendMessage processServiceCommand(Message message) {
+        var text = message.getText();
+
+        if (SHOW_FULLNESS.isEqual(text)) {
+            return getFullnessInfo(message);
+        } else if(FOLLOW_NOTIFICATIONS.isEqual(text)) {
+            return followNotification(message);
+        } else if (HELP.equals(text)) {
+            return getHelpMessage(message);
+        } else if (START.equals(text)) {
+            return getGreetingMessage(message);
+        } else {
+            return getUnavailableCommandMessage(message);
+        }
+    }
+
+    private CallbackResponse processCallbackContent(CallbackQuery callback) {
         var callbackData = callback.getData();
 
         if (SHOW_ONLY_RED.isEqual(callbackData)
@@ -89,8 +104,6 @@ public class MainServiceImpl implements MainService {
                 || SHOW_ONLY_YELLOW.isEqual(callbackData)) {
             return getFullnessInfo(callbackData, callback);
         }
-
-
 
         return CallbackResponse.builder()
                 .answerCallbackQuery(
@@ -102,10 +115,10 @@ public class MainServiceImpl implements MainService {
                 .build();
     }
 
-    private SendMessage followNotification(CallbackQuery callback) {
+    private SendMessage followNotification(Message message) {
         return SendMessage.builder()
-                .text("Временно Недоступно")
-                .chatId(callback.getMessage().getChatId())
+                .text("Временно Недоступно :(")
+                .chatId(message.getChatId())
                 .build();
     }
 
@@ -136,20 +149,6 @@ public class MainServiceImpl implements MainService {
                         SHOW_ONLY_GREEN.toString(),
                         "hi"))
                 .build();
-    }
-
-    private SendMessage processServiceCommand(Message message) {
-        var text = message.getText();
-
-        if (SHOW_FULLNESS.isEqual(text)) {
-            return getFullnessInfo(message);
-        } else if (HELP.equals(text)) {
-            return getHelpMessage(message);
-        } else if (START.equals(text)) {
-            return getGreetingMessage(message);
-        } else {
-            return getUnavailableCommandMessage(message);
-        }
     }
 
     private SendMessage getUnavailableCommandMessage(Message message) {
