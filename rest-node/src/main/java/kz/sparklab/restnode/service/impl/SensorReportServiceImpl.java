@@ -7,12 +7,14 @@ import kz.sparklab.restnode.model.SmartBox;
 import kz.sparklab.restnode.repository.SensorReportRepository;
 import kz.sparklab.restnode.repository.SmartBoxRepository;
 import kz.sparklab.restnode.service.SensorReportService;
+import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Log4j
 public class SensorReportServiceImpl implements SensorReportService {
     private final SensorReportRepository sensorReportRepository;
     private final SmartBoxRepository smartBoxRepository;
@@ -23,20 +25,19 @@ public class SensorReportServiceImpl implements SensorReportService {
     }
 
     @Override
-    public void processInboundEmailReport(EmailRequest emailRequest){
-                SmartBox smartBox = smartBoxRepository.findByName(emailRequest.getBoxName()).orElseThrow(BoxNotFoundException::new);
-                System.out.println("EMAILREQUEST PROCCESSING");
-                System.out.println("box_name: "+emailRequest.getBoxName() + "\nfullness: "+ emailRequest.getFullness() );
-
-                SensorReport sensorReport = SensorReport.builder().box(smartBox).fullness(Double.parseDouble(emailRequest.getFullness())).build();
-                sensorReportRepository.save(sensorReport);
+    public void processInboundEmailReport(EmailRequest emailRequest) {
+        SmartBox smartBox = smartBoxRepository.findByName(emailRequest.getBoxName()).orElseThrow(BoxNotFoundException::new);
+        log.info("EMAIL REQUEST PROCESSING");
+        log.info("box_name: " + emailRequest.getBoxName() + "\nfullness: " + emailRequest.getFullness());
+        double fullness = smartBox.getSensorHeight() - Double.parseDouble(emailRequest.getFullness());
+        SensorReport sensorReport = SensorReport.builder().box(smartBox).fullness(fullness).build();
+        sensorReportRepository.save(sensorReport);
     }
 
     @Override
-    public  Map<String, Integer> getSensorReport() {
+    public Map<String, Integer> getSensorReport() {
         List<SensorReport> sensorReportsList = sensorReportRepository.findLatestReportsForEachBox();
-        Map<String, Integer> reports = processSensorReports(sensorReportsList);
-        return reports;
+        return processSensorReports(sensorReportsList);
     }
 
     private Map<String, Integer> processSensorReports(List<SensorReport> sensorReportsList) {

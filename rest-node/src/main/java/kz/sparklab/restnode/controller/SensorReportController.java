@@ -30,7 +30,6 @@ public class SensorReportController {
 
     @GetMapping
     public ResponseEntity<Map<String, Integer>> getSensorReport(){
-        log.info("request");
         Map<String, Integer> reports  = sensorReportServiceImpl.getSensorReport();
         return ResponseEntity.status(HttpStatus.OK).body(reports);
     }

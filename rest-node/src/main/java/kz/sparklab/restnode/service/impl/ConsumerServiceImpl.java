@@ -3,11 +3,12 @@ package kz.sparklab.restnode.service.impl;
 import kz.sparklab.restnode.exception.BoxNotFoundException;
 import kz.sparklab.restnode.mail.EmailRequest;
 import kz.sparklab.restnode.service.ConsumerService;
+import lombok.extern.log4j.Log4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
-//@Log4j
 @Service
+@Log4j
 public class ConsumerServiceImpl implements ConsumerService {
     private final SensorReportServiceImpl sensorReportServiceImpl;
 
@@ -18,18 +19,14 @@ public class ConsumerServiceImpl implements ConsumerService {
     @Override
     @RabbitListener(queues = "sensor_report")
     public void consumeSensorReport(EmailRequest emailRequest) {
-        System.out.println("REST-NODE: EmailRequest is received");
+        log.info("REST-NODE: EmailRequest is received");
         try {
             sensorReportServiceImpl.processInboundEmailReport(emailRequest);
         } catch (BoxNotFoundException e) {
-            // Log the error or handle it gracefully
-            System.err.println("Box not found: " + e.getMessage());
-            // Optionally, you can return an error response
+            log.info("Box not found: " + e.getMessage());
         }
         catch (Exception e) {
-            // Log the error or handle it gracefully
-            System.err.println("Error: " + e.getMessage());
-            // Optionally, you can return an error response
+            log.info("Error: " + e.getMessage());
         }
     }
 }

@@ -37,25 +37,6 @@ public class MainServiceImpl implements MainService {
                                 
             3. Дополнительные функции (планируются): В будущем будут добавлены функции отчетов и статистики для более детального анализа работы и эффективности процесса сбора одежды.
             """;
-    private static final String FULLNESS_EXAMPLE = """
-            1. Достык Плаза                          \s
-                🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  97%
-                            
-            2. Астана Тауэрс                         \s
-                🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  86%
-                            
-            3. Байтерек                              \s
-                🟥 🟥 🟥 🟥 🟥 🟥 🟥 🟥  80%
-                            
-            4. Музей                                 \s
-                🟨 🟨 🟨 🟨 🟨 🟨 🟨  75%
-                            
-            5. Хан Шатыр                             \s
-                🟩 🟩 🟩  35%
-                            
-            6. Хан Шатыр                             \s
-                🟩 🟩 🟩  35%
-            """;
 
     private final ProducerService producerService;
     private final KeyBoardUtils keyBoardUtils;
@@ -107,9 +88,11 @@ public class MainServiceImpl implements MainService {
     private CallbackResponse processCallbackContent(CallbackQuery callback) {
         var callbackData = callback.getData();
 
-        if (SHOW_ONLY_RED.isEqual(callbackData)
-                || SHOW_ONLY_GREEN.isEqual(callbackData)
-                || SHOW_ONLY_YELLOW.isEqual(callbackData)) {
+        if (SHOW_ALL.isEqual(callbackData)) {
+            return getFullnessInfo(callback);
+        } else if (SHOW_ONLY_RED.isEqual(callbackData)
+                || SHOW_ONLY_YELLOW.isEqual(callbackData)
+                || SHOW_ONLY_GREEN.isEqual(callbackData)) {
             return getFullnessInfo(callbackData, callback);
         }
 
@@ -132,13 +115,36 @@ public class MainServiceImpl implements MainService {
 
     private CallbackResponse getFullnessInfo(String color, CallbackQuery callback) {
 
+        HashMap<String, Integer> map = restService.getFullnessFromAPI();
+
         AnswerCallbackQuery answerCallbackQuery = AnswerCallbackQuery.builder()
                 .callbackQueryId(callback.getId())
                 .text(color)
                 .build();
 
         SendMessage sendMessage = SendMessage.builder()
-                .text(color)
+                .text(messageFormatter.getFilteredFullnessMessage(color, map))
+                .chatId(callback.getMessage().getChatId())
+                .build();
+
+        return CallbackResponse.builder()
+                .answerCallbackQuery(answerCallbackQuery)
+                .sendMessage(sendMessage)
+                .build();
+    }
+
+    private CallbackResponse getFullnessInfo(CallbackQuery callback) {
+
+        HashMap<String, Integer> map = restService.getFullnessFromAPI();
+
+
+        AnswerCallbackQuery answerCallbackQuery = AnswerCallbackQuery.builder()
+                .callbackQueryId(callback.getId())
+                .text(SHOW_ALL.toString())
+                .build();
+
+        SendMessage sendMessage = SendMessage.builder()
+                .text(messageFormatter.getFullnessMessage(map))
                 .chatId(callback.getMessage().getChatId())
                 .build();
 
@@ -149,17 +155,15 @@ public class MainServiceImpl implements MainService {
     }
 
     private SendMessage getFullnessInfo(Message message) {
-        HashMap<String, Integer> map = restService.getFullnessFromAPI();
-
 
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text(messageFormatter.getFullnessMessage(map))
+                .text("Выберите один из опций: ")
                 .replyMarkup(keyBoardUtils.getInlineKeyboardMarkup(
+                        SHOW_ALL.toString(),
                         SHOW_ONLY_RED.toString(),
                         SHOW_ONLY_YELLOW.toString(),
-                        SHOW_ONLY_GREEN.toString(),
-                        "hi"))
+                        SHOW_ONLY_GREEN.toString()))
                 .build();
     }
 
