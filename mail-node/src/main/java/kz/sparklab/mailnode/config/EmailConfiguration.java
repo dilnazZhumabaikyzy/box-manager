@@ -1,19 +1,16 @@
 package kz.sparklab.mailnode.config;
 
+import jakarta.mail.Session;
 import kz.sparklab.mailnode.EmailListener;
 import kz.sparklab.mailnode.service.ProduceMessageService;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import jakarta.mail.*;
 import java.util.Properties;
-
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 
 
 
@@ -22,8 +19,8 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 public class EmailConfiguration {
     private String emailHost = "imap.gmail.com";
     private String emailPort = "993";
-    private String emailUsername = "aestgreat@gmail.com";
-    private String emailPassword = "qxerpvuyznnzatdi";
+    private String emailUsername = "mukanyerbolat@gmail.com";
+    private String emailPassword = "xyrmcavxpimjuihn";
 
     @Bean
     public Session mailSession() {

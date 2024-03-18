@@ -3,7 +3,9 @@ package kz.sparklab.service.impl;
 import kz.sparklab.dto.CallbackResponse;
 import kz.sparklab.service.MainService;
 import kz.sparklab.service.ProducerService;
+import kz.sparklab.service.RestService;
 import kz.sparklab.utils.KeyBoardUtils;
+import kz.sparklab.utils.MessageFormatter;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -11,6 +13,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
+import java.util.HashMap;
 
 import static kz.sparklab.service.enums.BotCallbacks.*;
 import static kz.sparklab.service.enums.BotCommands.HELP;
@@ -55,10 +59,14 @@ public class MainServiceImpl implements MainService {
 
     private final ProducerService producerService;
     private final KeyBoardUtils keyBoardUtils;
+    private final RestService restService;
+    private final MessageFormatter messageFormatter;
 
-    public MainServiceImpl(ProducerService producerService, KeyBoardUtils keyBoardUtils) {
+    public MainServiceImpl(ProducerService producerService, KeyBoardUtils keyBoardUtils, RestService restService, MessageFormatter messageFormatter) {
         this.producerService = producerService;
         this.keyBoardUtils = keyBoardUtils;
+        this.restService = restService;
+        this.messageFormatter = messageFormatter;
     }
 
 
@@ -123,6 +131,7 @@ public class MainServiceImpl implements MainService {
     }
 
     private CallbackResponse getFullnessInfo(String color, CallbackQuery callback) {
+
         AnswerCallbackQuery answerCallbackQuery = AnswerCallbackQuery.builder()
                 .callbackQueryId(callback.getId())
                 .text(color)
@@ -140,9 +149,12 @@ public class MainServiceImpl implements MainService {
     }
 
     private SendMessage getFullnessInfo(Message message) {
+        HashMap<String, Integer> map = restService.getFullnessFromAPI();
+
+
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text(FULLNESS_EXAMPLE)
+                .text(messageFormatter.getFullnessMessage(map))
                 .replyMarkup(keyBoardUtils.getInlineKeyboardMarkup(
                         SHOW_ONLY_RED.toString(),
                         SHOW_ONLY_YELLOW.toString(),
