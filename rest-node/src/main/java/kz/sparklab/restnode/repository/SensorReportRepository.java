@@ -11,6 +11,6 @@ public interface SensorReportRepository extends JpaRepository<SensorReport,Long>
     @Query("SELECT sr FROM SensorReport sr WHERE YEAR(sr.createdAt) = :year AND MONTH(sr.createdAt) = :month AND DAY(sr.createdAt) = :day")
     List<SensorReport> findByDate(@Param("year") int year, @Param("month") int month, @Param("day") int day);
 
-    @Query("SELECT sr FROM SensorReport sr WHERE sr.createdAt IN (SELECT MAX(sr2.createdAt) FROM SensorReport sr2 GROUP BY sr2.box.name)")
+    @Query("SELECT sr FROM SensorReport sr WHERE sr.createdAt IN (SELECT MAX(sr2.createdAt) FROM SensorReport sr2 GROUP BY sr2.box)")
     List<SensorReport> findLatestReportsForEachBox();
 }

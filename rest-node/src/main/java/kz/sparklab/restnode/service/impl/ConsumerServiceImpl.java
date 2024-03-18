@@ -3,33 +3,30 @@ package kz.sparklab.restnode.service.impl;
 import kz.sparklab.restnode.exception.BoxNotFoundException;
 import kz.sparklab.restnode.mail.EmailRequest;
 import kz.sparklab.restnode.service.ConsumerService;
+import kz.sparklab.restnode.service.SensorReportService;
+import lombok.extern.log4j.Log4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
-//@Log4j
+@Log4j
 @Service
 public class ConsumerServiceImpl implements ConsumerService {
-    private final SensorReportServiceImpl sensorReportServiceImpl;
+    private final SensorReportService sensorReportService;
 
-    public ConsumerServiceImpl(SensorReportServiceImpl sensorReportServiceImpl) {
-        this.sensorReportServiceImpl = sensorReportServiceImpl;
+    public ConsumerServiceImpl(SensorReportService sensorReportService) {
+        this.sensorReportService = sensorReportService;
     }
 
     @Override
     @RabbitListener(queues = "sensor_report")
     public void consumeSensorReport(EmailRequest emailRequest) {
-        System.out.println("REST-NODE: EmailRequest is received");
+        log.info("REST-NODE: EmailRequest is received. Message content: " + emailRequest);
         try {
-            sensorReportServiceImpl.processInboundEmailReport(emailRequest);
+            sensorReportService.processInboundEmailReport(emailRequest);
         } catch (BoxNotFoundException e) {
-            // Log the error or handle it gracefully
-            System.err.println("Box not found: " + e.getMessage());
-            // Optionally, you can return an error response
-        }
-        catch (Exception e) {
-            // Log the error or handle it gracefully
-            System.err.println("Error: " + e.getMessage());
-            // Optionally, you can return an error response
+            log.error("FAILED TO PROCESS QUEUE: BOX NOT FOUND EXCEPTION OCCURRED - " + e.getMessage());
+        } catch (Exception e) {
+            log.error("FAILED TO PROCESS QUEUE: AN ERROR OCCURRED - " + e.getMessage());
         }
     }
 }

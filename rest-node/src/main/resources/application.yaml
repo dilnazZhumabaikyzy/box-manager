@@ -1,5 +1,5 @@
 server:
-  port: 8088
+  port: 8081
   ssl:
     enabled: false
 
@@ -17,4 +17,6 @@ spring:
     username: userok
     password: p@ssw0rd
   jpa:
-    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect

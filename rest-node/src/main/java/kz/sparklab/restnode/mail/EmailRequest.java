@@ -14,4 +14,12 @@ public class EmailRequest {
 
     @JsonProperty("fullness")
     private String fullness;
+
+    @Override
+    public String toString() {
+        return "EmailRequest{" +
+                "boxName='" + boxName + '\'' +
+                ", fullness='" + fullness + '\'' +
+                '}';
+    }
 }
