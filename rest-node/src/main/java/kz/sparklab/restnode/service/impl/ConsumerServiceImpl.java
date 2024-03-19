@@ -29,4 +29,15 @@ public class ConsumerServiceImpl implements ConsumerService {
             log.error("FAILED TO PROCESS QUEUE: AN ERROR OCCURRED - " + e.getMessage());
         }
     }
+
+    @Override
+    @RabbitListener(queues = "sensor_notification")
+    public void consumeNotification(String boxName) {
+        log.info("REST-NODE: Sensor notification message is received. Box name: " + boxName);
+        try {
+            //TODO
+        } catch (Exception e) {
+            //TODO
+        }
+    }
 }

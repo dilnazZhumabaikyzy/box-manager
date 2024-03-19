@@ -9,6 +9,7 @@ import kz.sparklab.restnode.model.SensorReport;
 import kz.sparklab.restnode.model.SmartBox;
 import kz.sparklab.restnode.repository.SensorReportRepository;
 import kz.sparklab.restnode.repository.SmartBoxRepository;
+import kz.sparklab.restnode.service.NotificationProducerService;
 import kz.sparklab.restnode.service.SensorReportService;
 import lombok.extern.log4j.Log4j;
 
@@ -23,10 +24,12 @@ import java.util.stream.Collectors;
 public class SensorReportServiceImpl implements SensorReportService {
     private final SensorReportRepository sensorReportRepository;
     private final SmartBoxRepository smartBoxRepository;
+    private final NotificationProducerService notificationProducerService;
 
-    public SensorReportServiceImpl(SensorReportRepository sensorReportRepository, SmartBoxRepository smartBoxRepository) {
+    public SensorReportServiceImpl(SensorReportRepository sensorReportRepository, SmartBoxRepository smartBoxRepository, NotificationProducerService notificationProducerService) {
         this.sensorReportRepository = sensorReportRepository;
         this.smartBoxRepository = smartBoxRepository;
+        this.notificationProducerService = notificationProducerService;
     }
 
     @Override
@@ -35,6 +38,16 @@ public class SensorReportServiceImpl implements SensorReportService {
                 log.info(String.format("EMAIL REQUEST PROCESSING: Box Name: {%s}, Fullness: {%s}", emailRequest.getBoxName(), emailRequest.getFullness()));
 
                 SensorReport sensorReport = SensorReport.builder().box(smartBox).fullness(Double.parseDouble(emailRequest.getFullness())).build();
+                int fullnessPercent = getRoundedPercentage(smartBox, sensorReport);
+
+                if (fullnessPercent >= 100){
+                    sensorReport.setFullnessPercentage(100);
+                    notificationProducerService.produce("sensor_notification", smartBox.getName());
+                }
+                else {
+                    sensorReport.setFullnessPercentage(fullnessPercent);
+                }
+
                 try {
                     sensorReportRepository.save(sensorReport);
                     log.info("SENSOR REPORT CREATED SUCCESSFUL");
@@ -111,9 +124,6 @@ public class SensorReportServiceImpl implements SensorReportService {
         smartBoxIds.forEach(id -> {
             // If sensor report exists for the smart box
             if (sensorReportIds.contains(id)) {
-                SmartBox smartBox = smartBoxRepository.findById(id)
-                        .orElseThrow(BoxNotFoundException::new);
-
                 // Find the matching sensor report
                 Optional<SensorReport> optionalSensorReport = sensorReportsList.stream()
                         .filter(sensorReport -> sensorReport.getBox().getId().equals(id))
@@ -121,16 +131,21 @@ public class SensorReportServiceImpl implements SensorReportService {
 
                 if (optionalSensorReport.isPresent()) {
                     SensorReport sensorReport = optionalSensorReport.get();
-                    double fullnessInPercentage = ((smartBox.getHeight() - sensorReport.getFullness()) / smartBox.getSensorHeight()) * 100;
-                    int roundedPercentage = (int) Math.round(fullnessInPercentage);
-                    responseMap.put(id.toString(), roundedPercentage);
+                    responseMap.put(id.toString(), sensorReport.getFullnessPercentage());
                 }
+
             } else {
                 // If no sensor report exists for the smart box, set fullness to 0
                 responseMap.put(id.toString(), 0);
             }
         });
         return responseMap;
+    }
+
+    private static int getRoundedPercentage(SmartBox smartBox, SensorReport sensorReport) {
+        double fullnessInPercentage = ((smartBox.getHeight() - sensorReport.getFullness()) / smartBox.getSensorHeight()) * 100;
+        int roundedPercentage = (int) Math.round(fullnessInPercentage);
+        return roundedPercentage;
     }
 
 }

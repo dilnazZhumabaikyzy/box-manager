@@ -22,6 +22,7 @@ public class SensorReport {
     @JoinColumn(name = "box_id")
     private SmartBox box;
     private double fullness;
+    private int fullnessPercentage;
     @CreationTimestamp
     private Date createdAt;
 }
