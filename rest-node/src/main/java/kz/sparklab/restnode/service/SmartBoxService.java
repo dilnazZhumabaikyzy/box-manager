@@ -14,4 +14,6 @@ public interface SmartBoxService {
     SmartBoxDto getBoxById(String boxId);
     void deleteAll();
     void delete(String smartBoxId);
+
+    SmartBoxDto getBoxByName(String boxName);
 }

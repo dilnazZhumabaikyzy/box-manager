@@ -100,8 +100,12 @@ public class SmartBoxServiceImpl implements SmartBoxService {
 
     @Override
     public SmartBoxDto getBoxById(String smartBoxId) {
-        System.out.println(smartBoxId);
         SmartBox smartBox  = smartBoxRepository.findById(Long.valueOf(smartBoxId)).orElseThrow(BoxNotFoundException::new);
+        return  convertEntityToDto(smartBox);
+    }
+    @Override
+    public SmartBoxDto getBoxByName(String boxName) {
+        SmartBox smartBox  = smartBoxRepository.findByName(boxName).orElseThrow(BoxNotFoundException::new);
         return  convertEntityToDto(smartBox);
     }
 

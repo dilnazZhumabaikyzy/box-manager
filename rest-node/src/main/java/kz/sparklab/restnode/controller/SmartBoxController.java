@@ -48,9 +48,14 @@ public class SmartBoxController {
         List<SmartBoxDto> smartBoxDtoList = smartBoxService.getAll();
         return ResponseEntity.status(HttpStatus.OK).body(smartBoxDtoList);
     }
-    @GetMapping
-    public ResponseEntity<SmartBoxDto> getBox(@RequestParam String boxId){
+    @GetMapping("/id")
+    public ResponseEntity<SmartBoxDto> getBoxById(@RequestParam String boxId){
         SmartBoxDto smartBoxDto = smartBoxService.getBoxById(boxId);
+        return ResponseEntity.status(HttpStatus.OK).body(smartBoxDto);
+    }
+    @GetMapping("/name")
+    public ResponseEntity<SmartBoxDto> getBoxByName(@RequestParam String boxName){
+        SmartBoxDto smartBoxDto = smartBoxService.getBoxByName(boxName);
         return ResponseEntity.status(HttpStatus.OK).body(smartBoxDto);
     }
 
