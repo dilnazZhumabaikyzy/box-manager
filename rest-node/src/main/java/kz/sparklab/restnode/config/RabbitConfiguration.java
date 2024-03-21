@@ -10,11 +10,19 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfiguration {
-    @Value("sensor_notification")
+    @Value("sensor_fullness_notification")
     private String sensorNotificationQueryQueue;
+
+    @Value("sensor_anomaly_notification")
+    private String sensorAnomalyQueryQueue;
     @Bean
     public Queue sensorNotification() {
         return new Queue(sensorNotificationQueryQueue);
+    }
+
+    @Bean
+    public Queue sensorAnomaly() {
+        return new Queue(sensorAnomalyQueryQueue);
     }
 
     @Bean

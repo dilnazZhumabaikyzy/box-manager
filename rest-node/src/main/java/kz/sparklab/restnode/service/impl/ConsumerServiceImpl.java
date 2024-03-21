@@ -1,5 +1,6 @@
 package kz.sparklab.restnode.service.impl;
 
+import kz.sparklab.restnode.dto.SensorAnomalyWarningDto;
 import kz.sparklab.restnode.exception.BoxNotFoundException;
 import kz.sparklab.restnode.mail.EmailRequest;
 import kz.sparklab.restnode.service.ConsumerService;
@@ -31,9 +32,20 @@ public class ConsumerServiceImpl implements ConsumerService {
     }
 
     @Override
-    @RabbitListener(queues = "sensor_notification")
+    @RabbitListener(queues = "sensor_fullness_notification")
     public void consumeNotification(String boxName) {
         log.info("REST-NODE: Sensor notification message is received. Box name: " + boxName);
+        try {
+            //TODO
+        } catch (Exception e) {
+            //TODO
+        }
+    }
+
+    @Override
+    @RabbitListener(queues = "sensor_anomaly_notification")
+    public void consumeSensorAnomaly(SensorAnomalyWarningDto sensorAnomalyWarningDto) {
+        log.info("REST-NODE: Sensor anomaly message is received. Box name: " + sensorAnomalyWarningDto);
         try {
             //TODO
         } catch (Exception e) {

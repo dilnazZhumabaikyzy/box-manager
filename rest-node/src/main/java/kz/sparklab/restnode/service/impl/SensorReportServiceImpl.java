@@ -1,5 +1,6 @@
 package kz.sparklab.restnode.service.impl;
 
+import kz.sparklab.restnode.dto.SensorFullnessWarningDto;
 import kz.sparklab.restnode.dto.SensorReportDto;
 import kz.sparklab.restnode.exception.BoxNotFoundException;
 import kz.sparklab.restnode.exception.DeletionFailedException;
@@ -9,12 +10,14 @@ import kz.sparklab.restnode.model.SensorReport;
 import kz.sparklab.restnode.model.SmartBox;
 import kz.sparklab.restnode.repository.SensorReportRepository;
 import kz.sparklab.restnode.repository.SmartBoxRepository;
-import kz.sparklab.restnode.service.NotificationProducerService;
+import kz.sparklab.restnode.service.SensorFullnessWarningProducerService;
 import kz.sparklab.restnode.service.SensorReportService;
 import lombok.extern.log4j.Log4j;
 
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,12 +27,12 @@ import java.util.stream.Collectors;
 public class SensorReportServiceImpl implements SensorReportService {
     private final SensorReportRepository sensorReportRepository;
     private final SmartBoxRepository smartBoxRepository;
-    private final NotificationProducerService notificationProducerService;
+    private final SensorFullnessWarningProducerService sensorFullnessWarningProducerService;
 
-    public SensorReportServiceImpl(SensorReportRepository sensorReportRepository, SmartBoxRepository smartBoxRepository, NotificationProducerService notificationProducerService) {
+    public SensorReportServiceImpl(SensorReportRepository sensorReportRepository, SmartBoxRepository smartBoxRepository, SensorFullnessWarningProducerService sensorFullnessWarningProducerService) {
         this.sensorReportRepository = sensorReportRepository;
         this.smartBoxRepository = smartBoxRepository;
-        this.notificationProducerService = notificationProducerService;
+        this.sensorFullnessWarningProducerService = sensorFullnessWarningProducerService;
     }
 
     @Override
@@ -40,9 +43,19 @@ public class SensorReportServiceImpl implements SensorReportService {
                 SensorReport sensorReport = SensorReport.builder().box(smartBox).fullness(Double.parseDouble(emailRequest.getFullness())).build();
                 int fullnessPercent = getRoundedPercentage(smartBox, sensorReport);
 
-                if (fullnessPercent >= 100){
-                    sensorReport.setFullnessPercentage(100);
-                    notificationProducerService.produce("sensor_notification", smartBox.getName());
+                if (fullnessPercent >= 90){
+                    if (fullnessPercent > 100){
+                        sensorReport.setFullnessPercentage(100);
+                    }
+
+                    SensorFullnessWarningDto sensorFullnessWarningDto = SensorFullnessWarningDto.builder()
+                            .boxId(smartBox.getId())
+                            .boxName(smartBox.getName())
+                            .address(smartBox.getAddress())
+                            .fullnessPercent(sensorReport.getFullnessPercentage())
+                            .lastUpdationDate(  LocalDateTime.from(Instant.ofEpochMilli(sensorReport.getCreatedAt().getTime())))
+                            .build();
+                    sensorFullnessWarningProducerService.produce("sensor_fullness_notification", sensorFullnessWarningDto);
                 }
                 else {
                     sensorReport.setFullnessPercentage(fullnessPercent);
