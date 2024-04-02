@@ -4,6 +4,7 @@ public enum BotCallbacks {
 
     SHOW_FULLNESS("Посмотреть заполненность \uD83D\uDC40"),
     FOLLOW_NOTIFICATIONS("Подписаться на уведомления \uD83D\uDD14"),
+    UNFOLLOW_NOTIFICATIONS("Отписаться от уведомлений \uD83D\uDD15"),
     SHOW_ALL("Показать все боксы"),
     SHOW_ONLY_GREEN("Показать только \uD83D\uDFE9"),
     SHOW_ONLY_YELLOW("Показать только \uD83D\uDFE8"),

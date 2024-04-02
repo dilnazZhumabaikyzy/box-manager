@@ -1,6 +1,8 @@
 package kz.sparklab.service.impl;
 
 import kz.sparklab.dto.CallbackResponse;
+import kz.sparklab.entity.TelegramUser;
+import kz.sparklab.repositoty.TelegramUserRepository;
 import kz.sparklab.service.MainService;
 import kz.sparklab.service.ProducerService;
 import kz.sparklab.service.RestService;
@@ -15,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.HashMap;
+import java.util.List;
 
 import static kz.sparklab.service.enums.BotCallbacks.*;
 import static kz.sparklab.service.enums.BotCommands.HELP;
@@ -42,12 +45,14 @@ public class MainServiceImpl implements MainService {
     private final KeyBoardUtils keyBoardUtils;
     private final RestService restService;
     private final MessageFormatter messageFormatter;
+    private final TelegramUserRepository telegramUserRepository;
 
-    public MainServiceImpl(ProducerService producerService, KeyBoardUtils keyBoardUtils, RestService restService, MessageFormatter messageFormatter) {
+    public MainServiceImpl(ProducerService producerService, KeyBoardUtils keyBoardUtils, RestService restService, MessageFormatter messageFormatter, TelegramUserRepository telegramUserRepository) {
         this.producerService = producerService;
         this.keyBoardUtils = keyBoardUtils;
         this.restService = restService;
         this.messageFormatter = messageFormatter;
+        this.telegramUserRepository = telegramUserRepository;
     }
 
 
@@ -63,7 +68,6 @@ public class MainServiceImpl implements MainService {
     @Override
     public void processCallbackQuery(Update update) {
         var callback = update.getCallbackQuery();
-
         var outputMessage = processCallbackContent(callback);
 
         sendCallbackAnswer(outputMessage);
@@ -74,14 +78,39 @@ public class MainServiceImpl implements MainService {
 
         if (SHOW_FULLNESS.isEqual(text)) {
             return getFullnessInfo(message);
-        } else if(FOLLOW_NOTIFICATIONS.isEqual(text)) {
-            return followNotification(message);
+        } else if (FOLLOW_NOTIFICATIONS.isEqual(text) || UNFOLLOW_NOTIFICATIONS.isEqual(text)) {
+            return followOrUnfollowNotification(message);
         } else if (HELP.equals(text)) {
             return getHelpMessage(message);
         } else if (START.equals(text)) {
-            return getGreetingMessage(message);
+            return startCommand(message);
         } else {
             return getUnavailableCommandMessage(message);
+        }
+    }
+
+    private SendMessage startCommand(Message message) {
+        TelegramUser user = saveNewUser(message);
+        return getGreetingMessage(message, user);
+    }
+
+    private TelegramUser saveNewUser(Message message) {
+        log.info(message.getFrom());
+
+        TelegramUser user = telegramUserRepository.findByUsername(message.getFrom().getUserName());
+
+        if (user == null) {
+            TelegramUser newUser = TelegramUser.builder()
+                    .username(message.getFrom().getUserName())
+                    .firstName(message.getFrom().getFirstName())
+                    .lastName(message.getFrom().getLastName())
+                    .chatId(message.getChatId())
+                    .isFollowedForNotification(false)
+                    .build();
+
+            return telegramUserRepository.save(newUser);
+        } else {
+            return user;
         }
     }
 
@@ -106,10 +135,23 @@ public class MainServiceImpl implements MainService {
                 .build();
     }
 
-    private SendMessage followNotification(Message message) {
+    private SendMessage followOrUnfollowNotification(Message message) {
+
+        String username = message.getFrom().getUserName();
+
+        TelegramUser user = telegramUserRepository.findByUsername(username);
+
+        user.setFollowedForNotification(!user.isFollowedForNotification());
+        telegramUserRepository.save(user);
+        String responseText = user.isFollowedForNotification() ? "Теперь вы будете получать уведомления когда какой то из боксов заполнится!"
+                : "Вы отписались от уведомлений о заполненности боксов";
+
         return SendMessage.builder()
-                .text("Временно Недоступно :(")
+                .text(responseText)
                 .chatId(message.getChatId())
+                .replyMarkup(keyBoardUtils.getReplyKeyBoardMarkup(
+                        SHOW_FULLNESS.toString(),
+                        !user.isFollowedForNotification() ? FOLLOW_NOTIFICATIONS.toString() : UNFOLLOW_NOTIFICATIONS.toString()))
                 .build();
     }
 
@@ -181,21 +223,32 @@ public class MainServiceImpl implements MainService {
                 .build();
     }
 
-    private SendMessage getGreetingMessage(Message message) {
+    private SendMessage getGreetingMessage(Message message, TelegramUser user) {
+
         return SendMessage.builder()
                 .chatId(message.getChatId())
                 .text(GREETING_TEXT)
                 .replyMarkup(keyBoardUtils.getReplyKeyBoardMarkup(
                         SHOW_FULLNESS.toString(),
-                        FOLLOW_NOTIFICATIONS.toString()))
+                        !user.isFollowedForNotification() ? FOLLOW_NOTIFICATIONS.toString() : UNFOLLOW_NOTIFICATIONS.toString()))
                 .build();
 
 
     }
 
+    public void sendNotifications(String info) {
+        String content = String.format("\uD83D\uDD14 Новое уведомление! \uD83D\uDD14 %n %s\uD83D\uDEA8", info);
+
+        List<TelegramUser> users = telegramUserRepository.findAllFollowedUsers();
+
+        users.forEach(user -> sendAnswer(SendMessage.builder().text(content).chatId(user.getChatId()).build()));
+        log.debug("notification was sent");
+    }
+
     private void sendAnswer(SendMessage sendMessage) {
         producerService.produceAnswer(sendMessage);
     }
+
     private void sendCallbackAnswer(CallbackResponse callbackResponse) {
         if (callbackResponse.getAnswerCallbackQuery() != null)
             producerService.produceCallbackAnswer(callbackResponse.getAnswerCallbackQuery());

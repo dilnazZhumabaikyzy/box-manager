@@ -56,12 +56,5 @@
             <artifactId>telegrambots-spring-boot-starter</artifactId>
             <version>${telegrambots.starter.web}</version>
         </dependency>
-
-        <dependency>
-            <groupId>kz.sparklab</groupId>
-            <artifactId>common-jpa</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
     </dependencies>
 </project>

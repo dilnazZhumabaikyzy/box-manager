@@ -3,6 +3,9 @@ server:
   ssl:
     enabled: false
 
+rest-service:
+  url: http://localhost:8081/sensor
+
 spring:
   rabbitmq:
     host: localhost

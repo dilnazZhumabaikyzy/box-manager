@@ -13,9 +13,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RawData {@Id
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-private Long id;
+public class RawData {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Type(JsonBinaryType.class)
     @Column(columnDefinition = "jsonb")

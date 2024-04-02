@@ -12,10 +12,6 @@ spring:
     password: p@ssw0rd
     queues:
       sensor-report: sensor_report
-  datasource:
-    url: jdbc:postgresql://localhost:5432/pogreb
-    username: userok
-    password: p@ssw0rd
   jpa:
     hibernate:
       ddl-auto: update

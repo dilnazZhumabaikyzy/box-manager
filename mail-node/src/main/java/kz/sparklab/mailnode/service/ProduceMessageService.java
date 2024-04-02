@@ -3,7 +3,9 @@ package kz.sparklab.mailnode.service;
 import kz.sparklab.mailnode.EmailRequest;
 import kz.sparklab.mailnode.config.RabbitConfiguration;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProduceMessageService {
 
     private final RabbitTemplate rabbitTemplate;

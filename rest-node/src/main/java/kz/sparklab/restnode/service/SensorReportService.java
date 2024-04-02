@@ -2,7 +2,6 @@ package kz.sparklab.restnode.service;
 
 import kz.sparklab.restnode.dto.SensorReportDto;
 import kz.sparklab.restnode.mail.EmailRequest;
-import kz.sparklab.restnode.model.SensorReport;
 
 import java.util.List;
 import java.util.Map;

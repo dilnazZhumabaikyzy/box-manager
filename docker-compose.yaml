@@ -1,0 +1,94 @@
+version: '3.1'
+
+services:
+  mail-node:
+    build: ./mail-node
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      postgres:
+        condition: service_started
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: userok
+      SPRING_RABBITMQ_PASSWORD: p@ssw0rd
+
+  dispatcher:
+    build: ./dispatcher
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      postgres:
+        condition: service_started
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: userok
+      SPRING_RABBITMQ_PASSWORD: p@ssw0rd
+      TELEGRAM_BOT_NAME: kz_box_manager_bot
+      TELEGRAM_BOT_TOKEN: 6782433661:AAH4NAJSTSlNIeE2my4vW4pGGTCSYZI34RY
+
+  rest-node:
+    build: ./rest-node
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      postgres:
+        condition: service_started
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: userok
+      SPRING_RABBITMQ_PASSWORD: p@ssw0rd
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pogreb
+      SPRING_DATASOURCE_USERNAME: userok
+      SPRING_DATASOURCE_PASSWORD: p@ssw0rd
+
+  node:
+    build: ./node
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      postgres:
+        condition: service_started
+    ports:
+      - "8083:8083"
+    environment:
+      REST-SERVICE_URL: http://rest-node:8084
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: userok
+      SPRING_RABBITMQ_PASSWORD: p@ssw0rd
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pogreb
+      SPRING_DATASOURCE_USERNAME: userok
+      SPRING_DATASOURCE_PASSWORD: p@ssw0rd
+
+  rabbitmq:
+    image: rabbitmq:3.11.0-management
+    container_name: rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: userok
+      POSTGRES_PASSWORD: p@ssw0rd
+      POSTGRES_DB: pogreb
+
+volumes:
+  rabbitmq_data:

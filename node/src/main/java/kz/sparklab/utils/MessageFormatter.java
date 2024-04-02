@@ -14,6 +14,9 @@ import static kz.sparklab.service.enums.BotCallbacks.*;
 public class MessageFormatter {
 
     public String getFullnessMessage(Map<String, Integer> map) {
+        if (map.isEmpty())
+            return "Список пуст \uD83E\uDED7";
+
         StringBuilder message = new StringBuilder();
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
@@ -56,8 +59,12 @@ public class MessageFormatter {
     }
 
     public String getFilteredFullnessMessage(String color, Map<String, Integer> map) {
+        if (map.isEmpty())
+            return "Список пуст \uD83E\uDED7";
+
         StringBuilder message = new StringBuilder();
         List<Map.Entry<String, Integer>> list = null;
+
 
         if (SHOW_ONLY_RED.isEqual(color)) {
             message.append(SHOW_ONLY_RED);
@@ -70,9 +77,13 @@ public class MessageFormatter {
             list = map.entrySet().stream().filter(box -> box.getValue() >= 0 && box.getValue() < 40).toList();
         }
 
+        assert list != null;
+
         message.append(":\n\n");
 
-        assert list != null;
+        if (list.isEmpty()) {
+            return message.append("Список пуст \uD83E\uDED7").toString();
+        }
         list.forEach(box ->
                 message.append(box.getKey())
                         .append("\n")

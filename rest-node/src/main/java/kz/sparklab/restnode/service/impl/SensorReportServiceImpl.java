@@ -83,9 +83,9 @@ public class SensorReportServiceImpl implements SensorReportService {
 
     private List<SensorReportDto> converSensorReportEntityListToDtoList(List<SensorReport> sensorReportList) {
         List<SensorReportDto> dtoList = new ArrayList<>();
-        sensorReportList.forEach(sensorReport -> {
-            dtoList.add(convertSensorReportEntityToDto(sensorReport));
-        });
+        sensorReportList.forEach(sensorReport ->
+            dtoList.add(convertSensorReportEntityToDto(sensorReport))
+        );
         return dtoList;
     }
 
